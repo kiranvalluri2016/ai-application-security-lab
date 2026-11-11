@@ -10,7 +10,7 @@ from .policy import PolicyDecision, decide
 from .retrieval import redact_sensitive, retrieve
 from .storage import SecurityStore
 from .tools import enforce_privileged_noop
-from .trust import TrustedExecutionContext
+from .trust import TrustedExecutionContext, authorize_tenant
 
 
 SCENARIO_VERSION = "security-evaluation-v1"
@@ -26,6 +26,7 @@ class EvaluationResult:
 
 
 def evaluate(request: SecurityRequest, documents: list[Document], store: SecurityStore, context: TrustedExecutionContext, expected: str, approval: Approval | None = None, vulnerable_simulation: bool = False, budget: RequestBudget | None = None, proposal_revisions: int = 0) -> EvaluationResult:
+    authorize_tenant(request.tenant_id, context)
     budget = budget or RequestBudget()
     if vulnerable_simulation:
         result = EvaluationResult("SIMULATED_UNSAFE_OUTCOME", "BASELINE_COMPARISON_ONLY", "No content or effect is released by the vulnerable simulator.", PolicyDecision("DENY", "BASELINE_COMPARISON_ONLY", None), None)

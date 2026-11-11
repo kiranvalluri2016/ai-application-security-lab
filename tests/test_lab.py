@@ -91,6 +91,37 @@ def test_expired_mismatched_and_forged_authorization_fail_closed(tmp_path: Path)
         enforce_privileged_noop(request, proposal, decision, mismatched, ["doc-alpha-internal"], store, RequestBudget())
 
 
+def test_approval_for_request_a_or_another_tenant_cannot_authorize_request_b(tmp_path: Path) -> None:
+    request_a, _, _ = scenario("privileged")
+    request_b = request_a.model_copy(update={"request_id": "req-privileged-002"})
+    proposal_b = propose(request_b, [docs()[0]])
+    decision_b = decide(request_b, proposal_b, ["doc-alpha-internal"], budget_ok=True)
+    approval_a = Approval(approval_id="approval-request-a", tenant_id="tenant-alpha", request_id=request_a.request_id, action="PRIVILEGED_NOOP", parameter_hash=parameter_hash(proposal_b.parameters), approver_subject=TRUSTED_APPROVER, decision="APPROVE", expires_at=datetime.now(UTC) + timedelta(minutes=5))
+    store = SecurityStore(tmp_path / "state.sqlite")
+    store.issue_approval(approval_a)
+    with pytest.raises(PermissionError, match="current tenant, request, and action"):
+        enforce_privileged_noop(request_b, proposal_b, decision_b, approval_a, ["doc-alpha-internal"], store, RequestBudget())
+    cross_tenant = approval_a.model_copy(update={"approval_id": "approval-tenant-beta", "tenant_id": "tenant-beta", "request_id": request_b.request_id})
+    store.issue_approval(cross_tenant)
+    with pytest.raises(PermissionError, match="current tenant, request, and action"):
+        enforce_privileged_noop(request_b, proposal_b, decision_b, cross_tenant, ["doc-alpha-internal"], store, RequestBudget())
+    with sqlite3.connect(tmp_path / "state.sqlite") as connection:
+        assert connection.execute("select count(*) from effects").fetchone() == (0,)
+
+
+def test_evaluator_rejects_unauthorized_tenant_before_any_state_mutation(tmp_path: Path) -> None:
+    unauthorized = SecurityRequest(request_id="req-tenant-beta-001", tenant_id="tenant-beta", question="Read document.", document_ids=["doc-beta-internal"])
+    for vulnerable in (False, True):
+        state = tmp_path / f"{vulnerable}.sqlite"
+        store = SecurityStore(state)
+        with pytest.raises(PermissionError, match="trusted execution context"):
+            evaluate(unauthorized, docs(), store, LOCAL_CONTEXT, "DENY", vulnerable_simulation=vulnerable)
+        with sqlite3.connect(state) as connection:
+            assert connection.execute("select count(*) from evaluations").fetchone() == (0,)
+            assert connection.execute("select count(*) from effects").fetchone() == (0,)
+            assert connection.execute("select count(*) from audit").fetchone() == (0,)
+
+
 def test_each_budget_dimension_exhaustion_prevents_further_simulation(tmp_path: Path) -> None:
     safe, _, _ = scenario("safe-read")
     for suffix, budget, revisions in [
