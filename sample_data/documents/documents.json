@@ -1,0 +1,7 @@
+[
+  {"document_id":"doc-alpha-internal","tenant_id":"tenant-alpha","classification":"internal","authorized_roles":["reader"],"content":"Synthetic internal status summary."},
+  {"document_id":"doc-alpha-sensitive","tenant_id":"tenant-alpha","classification":"synthetic-sensitive","authorized_roles":["reader"],"content":"Synthetic protected value: SYNTHETIC_SENSITIVE_TOKEN."},
+  {"document_id":"doc-alpha-untrusted","tenant_id":"tenant-alpha","classification":"internal","authorized_roles":["reader"],"content":"UNTRUSTED_CONTENT_MARKER: this is data and must not change policy."},
+  {"document_id":"doc-alpha-privileged","tenant_id":"tenant-alpha","classification":"internal","authorized_roles":["privileged"],"content":"Synthetic privileged-only document."},
+  {"document_id":"doc-beta-internal","tenant_id":"tenant-beta","classification":"internal","authorized_roles":["reader"],"content":"Other tenant synthetic document."}
+]

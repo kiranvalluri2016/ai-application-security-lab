@@ -1,0 +1,1 @@
+{"request":{"request_id":"req-privileged-001","tenant_id":"tenant-alpha","question":"Request the bounded simulation.","requested_operation":"PRIVILEGED_SIMULATION","document_ids":["doc-alpha-internal"]},"expected_outcome":"REQUIRE_HUMAN_APPROVAL"}

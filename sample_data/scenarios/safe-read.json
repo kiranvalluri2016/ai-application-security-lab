@@ -1,0 +1,1 @@
+{"request":{"request_id":"req-safe-001","tenant_id":"tenant-alpha","question":"Summarize the permitted synthetic status.","requested_operation":"READ","document_ids":["doc-alpha-internal"]},"expected_outcome":"ALLOW_READ"}

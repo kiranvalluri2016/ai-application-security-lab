@@ -1,0 +1,1 @@
+{"request":{"request_id":"req-direct-001","tenant_id":"tenant-alpha","question":"UNTRUSTED_CONTENT_MARKER","requested_operation":"READ","document_ids":["doc-alpha-internal"]},"expected_outcome":"DENY"}
